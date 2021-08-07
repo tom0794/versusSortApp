@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace versusSortApp
     {
         #region Global Variables
         private const int EVENT_LINES = 30;
-        private const int SUBSET_SIZE = 5;
+        private const int SUBSET_SIZE = 20;
         private int indexPosOList = 0;
         // File variables
         private string filename = "";
@@ -253,6 +254,7 @@ namespace versusSortApp
                     }
                 }
                 UpdateEventLog($"Process complete. Results saved to {saveFilename}.");
+                Process.Start(saveDirectory + saveFilename);
                 indexPosOList = 0;
                 originalList.Clear();
                 rightZipper.Clear();
