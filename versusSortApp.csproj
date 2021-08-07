@@ -55,7 +55,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ZipperSort.cs" />
     <EmbeddedResource Include="VersusGUI.resx">
       <DependentUpon>VersusGUI.cs</DependentUpon>
     </EmbeddedResource>

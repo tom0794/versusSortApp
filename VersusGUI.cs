@@ -14,8 +14,8 @@ namespace versusSortApp
     public partial class VersusGUI : Form
     {
         #region Global Variables
-        private const int EVENT_LINES = 150;
-        private const int SUBSET_SIZE = 20;
+        private const int EVENT_LINES = 30;
+        private const int SUBSET_SIZE = 5;
         private int indexPosOList = 0;
         // File variables
         private string filename = "";
@@ -27,6 +27,7 @@ namespace versusSortApp
         private List<string> originalList = new List<string>();
         private List<string> leftZipper = new List<string>();
         private List<string> rightZipper = new List<string>();
+        private List<string> completeZipper = new List<string>();
         private List<HistorySort> historyList = new List<HistorySort>();
         // Loop control variables
         private int indexChoice1 = 0;
@@ -62,14 +63,14 @@ namespace versusSortApp
                 }
                 eventLogLines.Add(newLine);
                 txtOutput.Clear();
-                foreach (string line in eventLogLines)
+                for (int i = eventLogLines.Count - 1; i > -1; i--)
                 {
-                    txtOutput.Text += line + "\n";
+                    txtOutput.Text += eventLogLines[i] + "\n";
                 }
             }
             else
             {
-                txtOutput.Text += newLine + "\n";
+                txtOutput.Text = newLine + "\n" + txtOutput.Text;
             }
         }
         #endregion
@@ -107,27 +108,7 @@ namespace versusSortApp
         #region Buttons
         private void btnTest_Click(object sender, EventArgs e)
         {
-            List<string> testChunk = GetSubset();
-            List<HistorySort> testHistoryList = new List<HistorySort>();
-            foreach (string str in testChunk)
-            {
-                testHistoryList.Add(new HistorySort(str));
-            }
-            testHistoryList[1].BeatList.Add(testHistoryList[0].Name);
-            testHistoryList[0].BeatList.Add(testHistoryList[2].Name);
-            testHistoryList[1].BeatList.Add(testHistoryList[2].Name);
-            //testHistoryList[3].BeatList.Add(testHistoryList[0].Name);
-            //testHistoryList[3].BeatList.Add(testHistoryList[2].Name);
-            foreach (HistorySort hs in testHistoryList)
-            {
-                UpdateEventLog(hs.ToString());
-            }
-            testHistoryList = HistorySort.WriteToHistory(testHistoryList, 3, 0);
-            UpdateEventLog("----");
-            foreach (HistorySort hs in testHistoryList)
-            {
-                UpdateEventLog(hs.ToString());
-            }
+            UpdateEventLog($"olist: {indexPosOList}");
 
         }
 
@@ -152,29 +133,44 @@ namespace versusSortApp
         private void SetUpUserInput()
         {
             btnChoice1.Enabled = true;
-            btnChoice1.Text = historyList[indexChoice1].Name;
             btnChoice2.Enabled = true;
-            btnChoice2.Text = historyList[indexChoice2].Name;
+            if (historySortActive)
+            {
+                btnChoice1.Text = historyList[indexChoice1].Name;
+                btnChoice2.Text = historyList[indexChoice2].Name;
+            }
+            else if (zipperSortActive)
+            {
+                btnChoice1.Text = leftZipper[indexChoice1];
+                btnChoice2.Text = rightZipper[indexChoice2];
+            }
         }
 
         private void btnChoice1_Click(object sender, EventArgs e)
         {
+            btnChoice1.Enabled = false;
+            btnChoice2.Enabled = false;
             if (historySortActive)
             {
-                btnChoice1.Enabled = false;
-                btnChoice2.Enabled = false;
                 HistoryResolution(indexChoice1, indexChoice2);
+            }
+            else if (zipperSortActive)
+            {
+                ZipperResolution(leftZipperWinner: true);
             }
         }
 
         private void btnChoice2_Click(object sender, EventArgs e)
         {
+            btnChoice1.Enabled = false;
+            btnChoice2.Enabled = false;
             if (historySortActive)
             {
-                btnChoice1.Enabled = false;
-                btnChoice2.Enabled = false;
                 HistoryResolution(indexChoice2, indexChoice1);
-
+            }
+            else if (zipperSortActive)
+            {
+                ZipperResolution(leftZipperWinner: false);
             }
         }
         #endregion
@@ -198,15 +194,14 @@ namespace versusSortApp
         #region Director
         private void Director()
         {
-            // If both zippers are empty, fill the left zipper with a history sort
-            if (leftZipper.Count == 0 && rightZipper.Count == 0)
+            // If the right zipper is empty, fill it
+            if (rightZipper.Count == 0 && indexPosOList != originalList.Count)
             {
                 List<string> listSubset = GetSubset();
                 if (listSubset.Count == 1)
                 {
-                    rightZipper = listSubset;
+                    rightZipper.Add(listSubset[0]);
                     Director();
-                    return;
                 }
                 else
                 {
@@ -219,8 +214,50 @@ namespace versusSortApp
                         historyList.Add(new HistorySort(str));
                     }
                     DoHistorySort();
-                    return;
                 }
+            }
+            // if the left zipper is empty and the right is not, move the contents of the right to the left
+            else if (leftZipper.Count == 0 && rightZipper.Count != 0)
+            {
+                foreach (string str in rightZipper)
+                {
+                    leftZipper.Add(str);
+                }
+                rightZipper.Clear();
+                Director();
+            }
+            // if both are full, combine and place results in the left zipper
+            else if (leftZipper.Count != 0 && rightZipper.Count != 0)
+            {
+                indexChoice1 = 0;
+                indexChoice2 = 0;
+                completeZipper.Clear();
+                zipperSortActive = true;
+                DoZipperSort();
+            }
+            // when there is nothing left to sort
+            else if (indexPosOList == originalList.Count)
+            {
+                using (writer = new StreamWriter(saveDirectory + saveFilename, append: false))
+                {
+                    for (int i = 0; i <= leftZipper.Count - 1; i++)
+                    {
+                        if (i + 1 < 10)
+                        {
+                            writer.WriteLine($" {i + 1}. {leftZipper[i]}");
+                        }
+                        else
+                        {
+                            writer.WriteLine($"{i + 1}. {leftZipper[i]}");
+                        }
+                    }
+                }
+                UpdateEventLog($"Process complete. Results saved to {saveFilename}.");
+                indexPosOList = 0;
+                originalList.Clear();
+                rightZipper.Clear();
+                leftZipper.Clear();
+                btnStart.Enabled = false;
             }
         }
 
@@ -252,7 +289,7 @@ namespace versusSortApp
         private void HistoryResolution(int winner, int loser)
         {
             historyList = HistorySort.WriteToHistory(historyList, winner, loser);
-            UpdateEventLog($"{historyList[winner].Name} beat {historyList[loser].Name}!");
+            //UpdateEventLog($"{historyList[winner].Name} beat {historyList[loser].Name}!");
 
             IncrementIndices();
             if (historySortActive)
@@ -272,14 +309,6 @@ namespace versusSortApp
                         }
                     }
                     lcv--;
-                }
-                //foreach (HistorySort hs in historyList)
-                //{
-                //    UpdateEventLog(hs.ToString());
-                //}
-                foreach (string str in rightZipper)
-                {
-                    UpdateEventLog(str);
                 }
                 Director();
             }
@@ -306,6 +335,72 @@ namespace versusSortApp
         }
         #endregion
 
+        #region Zipper Sort
+        private void DoZipperSort()
+        {
+            SetUpUserInput();
+        }
 
+        private void ZipperResolution(bool leftZipperWinner)
+        {
+            // if the left zipper choice won
+            if (leftZipperWinner)
+            {
+                completeZipper.Add(leftZipper[indexChoice1]);
+                // if there is nothing left on the left list add the remainder of the right list
+                if (indexChoice1 == leftZipper.Count - 1)
+                {
+                    while (indexChoice2 <= rightZipper.Count - 1)
+                    {
+                        completeZipper.Add(rightZipper[indexChoice2]);
+                        indexChoice2++;
+                    }
+                    FinishZipperSort();
+                }
+                else
+                {
+                    indexChoice1++;
+                    DoZipperSort();
+                }
+            }
+            // if the right zipper choice won
+            else 
+            {
+                completeZipper.Add(rightZipper[indexChoice2]);
+                // if there is nothing left on the right list add the remainder of the left list
+                if (indexChoice2 == rightZipper.Count - 1)
+                {
+                    while (indexChoice1 <= leftZipper.Count - 1)
+                    {
+                        completeZipper.Add(leftZipper[indexChoice1]);
+                        indexChoice1++;
+                    }
+                    FinishZipperSort();
+                }
+                else
+                {
+                    indexChoice2++;
+                    DoZipperSort();
+                }
+            }
+        }
+
+        private void FinishZipperSort()
+        {
+            leftZipper.Clear();
+            rightZipper.Clear();
+            foreach (string str in completeZipper)
+            {
+                leftZipper.Add(str);
+            }
+            zipperSortActive = false;
+            Director();
+        }
+        #endregion
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
     }
 }

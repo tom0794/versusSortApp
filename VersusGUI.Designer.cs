@@ -69,21 +69,22 @@ namespace versusSortApp
             // openFileToolStripMenuItem
             // 
             this.openFileToolStripMenuItem.Name = "openFileToolStripMenuItem";
-            this.openFileToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.openFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openFileToolStripMenuItem.Text = "Open File";
             this.openFileToolStripMenuItem.Click += new System.EventHandler(this.openFileToolStripMenuItem_Click);
             // 
             // editSaveDirectoryToolStripMenuItem
             // 
             this.editSaveDirectoryToolStripMenuItem.Name = "editSaveDirectoryToolStripMenuItem";
-            this.editSaveDirectoryToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.editSaveDirectoryToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.editSaveDirectoryToolStripMenuItem.Text = "Edit Save Directory";
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exitToolStripMenuItem.Text = "Exit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // groupBox1
             // 
@@ -99,6 +100,7 @@ namespace versusSortApp
             // btnChoice2
             // 
             this.btnChoice2.Enabled = false;
+            this.btnChoice2.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnChoice2.Location = new System.Drawing.Point(391, 12);
             this.btnChoice2.Name = "btnChoice2";
             this.btnChoice2.Size = new System.Drawing.Size(379, 196);
@@ -110,6 +112,7 @@ namespace versusSortApp
             // btnChoice1
             // 
             this.btnChoice1.Enabled = false;
+            this.btnChoice1.Font = new System.Drawing.Font("Microsoft Sans Serif", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnChoice1.Location = new System.Drawing.Point(5, 12);
             this.btnChoice1.Name = "btnChoice1";
             this.btnChoice1.Size = new System.Drawing.Size(379, 196);
