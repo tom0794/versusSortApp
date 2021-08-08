@@ -36,8 +36,11 @@ namespace versusSortApp
         // State variables
         private bool historySortActive = false;
         private bool zipperSortActive = false;
+        // Counter variables
+        private int userComparisons;
+        private int totalComparisons;
+        private int historyComparisons;
         #endregion
-
 
         public VersusGUI()
         {
@@ -55,16 +58,16 @@ namespace versusSortApp
             if (txtOutput.Lines.Length > EVENT_LINES)
             {
                 List<string> eventLogLines = new List<string>();
-                for (int i = 1; i < txtOutput.Lines.Length; i++)
+                eventLogLines.Add(newLine);
+                for (int i = 0; i < txtOutput.Lines.Length - 1; i++)
                 {
                     if (txtOutput.Lines[i] != "")
                     {
                         eventLogLines.Add(txtOutput.Lines[i]);
                     }
                 }
-                eventLogLines.Add(newLine);
                 txtOutput.Clear();
-                for (int i = eventLogLines.Count - 1; i > -1; i--)
+                for (int i = 0; i < eventLogLines.Count - 1; i++)
                 {
                     txtOutput.Text += eventLogLines[i] + "\n";
                 }
@@ -109,7 +112,6 @@ namespace versusSortApp
         #region Buttons
         private void btnTest_Click(object sender, EventArgs e)
         {
-            UpdateEventLog($"olist: {indexPosOList}");
 
         }
 
@@ -128,11 +130,17 @@ namespace versusSortApp
                     originalList.Add(reader.ReadLine());
                 }
             }
+            originalList.Shuffle();
             Director();
         }
 
+        /// <summary>
+        /// Enables the choice buttons with each choice set as a button name.
+        /// </summary>
         private void SetUpUserInput()
         {
+            userComparisons++;
+            totalComparisons++;
             btnChoice1.Enabled = true;
             btnChoice2.Enabled = true;
             if (historySortActive)
@@ -147,6 +155,12 @@ namespace versusSortApp
             }
         }
 
+        /// <summary>
+        /// When a choice is made, the buttons are disabled, and the approriate sort method is called 
+        /// with a winner and a loser, based on which button was clicked.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnChoice1_Click(object sender, EventArgs e)
         {
             btnChoice1.Enabled = false;
@@ -161,6 +175,12 @@ namespace versusSortApp
             }
         }
 
+        /// <summary>
+        /// When a choice is made, the buttons are disabled, and the approriate sort method is called 
+        /// with a winner and a loser, based on which button was clicked.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnChoice2_Click(object sender, EventArgs e)
         {
             btnChoice1.Enabled = false;
@@ -193,6 +213,10 @@ namespace versusSortApp
         }
 
         #region Director
+        /// <summary>
+        /// Determines the next action based on the current state of the program. It will start/continue a history
+        /// sort or a zipper sort, and at the conclusion of the process it will save the results and reset the program state.
+        /// </summary>
         private void Director()
         {
             // If the right zipper is empty, fill it
@@ -254,7 +278,10 @@ namespace versusSortApp
                     }
                 }
                 UpdateEventLog($"Process complete. Results saved to {saveFilename}.");
+                UpdateEventLog($"{userComparisons} user comparisons made out of {totalComparisons} comparisons.");
                 Process.Start(saveDirectory + saveFilename);
+                totalComparisons = 0;
+                userComparisons = 0;
                 indexPosOList = 0;
                 originalList.Clear();
                 rightZipper.Clear();
@@ -265,29 +292,43 @@ namespace versusSortApp
 
         #endregion
 
-
-
         #region History Sort
-        // startup (director will set it up)
-
-        // repeatedly call
+        /// <summary>
+        /// Checks the history to resolve the current comparison. Calls for user input if the history
+        /// does not contain a resolution.
+        /// </summary>
         private void DoHistorySort()
         {
             if (HistorySort.CheckHistory(historyList, indexChoice1, indexChoice2))
             {
+                totalComparisons++;
+                historyComparisons++;
                 HistoryResolution(indexChoice1, indexChoice2);
             }
             else if (HistorySort.CheckHistory(historyList, indexChoice2, indexChoice1))
             {
+                totalComparisons++;
+                historyComparisons++;
                 HistoryResolution(indexChoice2, indexChoice1);
             }
             else
             {
+                if (historyComparisons > 0)
+                {
+                    UpdateEventLog($"{historyComparisons} comparisons made using previous results.");
+                    historyComparisons = 0;
+                }
                 SetUpUserInput();
             }
         }
 
-        // resolution that increments variables
+        /// <summary>
+        /// After a winner and loser have been determined, writes the result to the history and increments
+        /// the list index variables. Checks to see if the last comparison has been made, and once it has,
+        /// calls the Director method.
+        /// </summary>
+        /// <param name="winner">List index of the winner.</param>
+        /// <param name="loser">List index of the loser.</param>
         private void HistoryResolution(int winner, int loser)
         {
             historyList = HistorySort.WriteToHistory(historyList, winner, loser);
@@ -316,6 +357,9 @@ namespace versusSortApp
             }
         }
 
+        /// <summary>
+        /// Increments the two list position variables used for history sort.
+        /// </summary>
         private void IncrementIndices()
         {
             if (indexChoice2 == (historyList.Count - 1))
@@ -343,6 +387,11 @@ namespace versusSortApp
             SetUpUserInput();
         }
 
+        /// <summary>
+        /// Updates the complete zipper with the winner, increments the zipper index variables, and continues
+        /// or concludes the zipper sort process.
+        /// </summary>
+        /// <param name="leftZipperWinner">True if the winner was from the left zipper, otherwise false.</param>
         private void ZipperResolution(bool leftZipperWinner)
         {
             // if the left zipper choice won
@@ -354,6 +403,7 @@ namespace versusSortApp
                 {
                     while (indexChoice2 <= rightZipper.Count - 1)
                     {
+                        totalComparisons++;
                         completeZipper.Add(rightZipper[indexChoice2]);
                         indexChoice2++;
                     }
@@ -374,6 +424,7 @@ namespace versusSortApp
                 {
                     while (indexChoice1 <= leftZipper.Count - 1)
                     {
+                        totalComparisons++;
                         completeZipper.Add(leftZipper[indexChoice1]);
                         indexChoice1++;
                     }
@@ -387,6 +438,10 @@ namespace versusSortApp
             }
         }
 
+        /// <summary>
+        /// At the conclusion of a zipper sort, the final sorted list is stored in the left zipper, and 
+        /// the right zipper is cleared. 
+        /// </summary>
         private void FinishZipperSort()
         {
             leftZipper.Clear();
