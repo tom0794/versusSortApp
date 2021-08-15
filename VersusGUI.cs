@@ -16,7 +16,7 @@ namespace versusSortApp
     {
         #region Global Variables
         private const int EVENT_LINES = 30;
-        private const int SUBSET_SIZE = 20;
+        private int SUBSET_SIZE;
         private int indexPosOList = 0;
         // File variables
         private string filename = "";
@@ -112,7 +112,9 @@ namespace versusSortApp
         #region Buttons
         private void btnTest_Click(object sender, EventArgs e)
         {
-
+            double yep = (double)100/3;
+            int tester = (int)Math.Ceiling(yep);
+            UpdateEventLog("yeh " + tester);
         }
 
         /// <summary>
@@ -131,6 +133,10 @@ namespace versusSortApp
                 }
             }
             originalList.Shuffle();
+            SUBSET_SIZE = (int)Math.Ceiling((double)originalList.Count / 3);
+            UpdateEventLog($"Subset size is {SUBSET_SIZE}");
+            btnStart.Enabled = false;
+            openFileToolStripMenuItem.Enabled = false;
             Director();
         }
 
@@ -286,7 +292,7 @@ namespace versusSortApp
                 originalList.Clear();
                 rightZipper.Clear();
                 leftZipper.Clear();
-                btnStart.Enabled = false;
+                openFileToolStripMenuItem.Enabled = true;
             }
         }
 
