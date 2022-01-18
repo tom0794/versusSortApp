@@ -1,0 +1,2 @@
+This is my attempt at creating an application that allows the user to sort of provided list of elements based on preference. 
+The intended use is to present the user with a series of comparisons between two elements from the list, tasking the user with selecting the one they prefer. By saving the results of these comparisons, at the conclusion of the process a list is produced ranking each element from the original list in order of the user's preference.
